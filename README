@@ -1,0 +1,11 @@
+Project's home: http://www.hexstreamsoft.com/projects/parse-number-range/
+
+
+Parses LOOP's somewhat complicated number range (for-as-arithmetic)
+syntax into 5 simple values: from, to, by, direction (incf or decf)
+and bound-type (:inclusive or :exclusive). Intended for easy
+implementation of similar functionality in other (saner?) constructs.
+
+
+This library is in the Public Domain.
+See the UNLICENSE file for details.
