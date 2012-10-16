@@ -1,3 +1,4 @@
 (cl:defpackage #:parse-number-range
   (:use #:cl)
-  (:export #:parse))
+  (:export #:parse
+           #:unparse))

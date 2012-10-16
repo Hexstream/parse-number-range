@@ -5,7 +5,7 @@
               (to nil) to-p
               (by 1) by-p
               direction (limit-kind :unbounded))
-  '(values from to limit-kind step direction)
+  '(values from to limit-kind by direction)
   (flet ((direction (new-direction)
 	   (if direction
 	       (unless (eq direction new-direction)
@@ -51,3 +51,29 @@
              (duplicate "BY"))
            (setf by value
                  by-p t)))))))
+
+(defun %direction/limit-to-keywords (direction limit-kind)
+  '(values from-keyword to-keyword)
+  (cartesian-product-switch:cartesian-product-switch
+      ((ecase direction
+         + -)
+       (ecase limit-kind
+         :unbounded :inclusive :exclusive))
+    ;; +
+    (values :from nil)
+    (values :from :to)
+    (values :from :below)
+    ;; -
+    (values :downfrom nil)
+    (values :from :downto)
+    (values :from :above)))
+
+(defun unparse (from to limit-kind by direction)
+  (multiple-value-bind (from-keyword to-keyword)
+      (%direction/limit-to-keywords direction limit-kind)
+    ;; Backquote indented badly...
+    (nconc (list from-keyword from)
+           (when to-keyword
+             (list to-keyword to))
+           (when (and by (/= by 1))
+             (list :by by)))))
