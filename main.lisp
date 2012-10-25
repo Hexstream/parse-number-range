@@ -181,3 +181,27 @@
              (list to-keyword to))
            (when (and by (/= by 1))
              (list :by by)))))
+
+;; Stupid repetition, but I've had enough.
+(defun kind (keyword &key (errorp t))
+  '(values kind new-direction new-limit-kind)
+  (case keyword
+    ((:from :downfrom :upfrom)
+     (multiple-value-call #'values
+       :from
+       (ecase keyword
+         (:from (values nil nil))
+         (:downfrom (values '- nil))
+         (:upfrom (values '+ nil)))))
+    ((:to :upto :downto :below :above)
+     (multiple-value-call #'values
+       :to
+       (ecase keyword
+         (:to (values nil :inclusive))
+         (:downto (values '- :inclusive))
+         (:upto (values '+ :inclusive))
+         (:below (values '+ :exclusive))
+         (:above (values '- :exclusive)))))
+    (:by (values :by nil nil))
+    (t (when errorp
+         (error "~S is not a for-as-arithmetic keyword." keyword)))))
