@@ -7,9 +7,13 @@
 
   :description "Parses LOOP's convenient \"for-as-arithmetic\" syntax into 5 simple values: from, to, limit-kind (:inclusive, :exclusive or nil if unbounded), by (step) and direction (+ or -)). Intended for easy implementation of analogous functionality in other constructs."
 
-  :depends-on (#:cartesian-product-switch)
+  :depends-on (#:map-bind
+               #:cartesian-product-switch
+               #:enhanced-multiple-value-bind)
 
   :version "1.0"
   :serial cl:t
   :components ((:file "package")
-	       (:file "main")))
+               (:file "info")
+               (:file "internals")
+	       (:file "parse")))
