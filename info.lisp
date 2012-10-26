@@ -1,9 +1,11 @@
 (in-package #:parse-number-range)
 
 ;; Stupid repetition, but I've had enough.
-(defun kind (keyword &key (errorp t))
+(defun kind (keyword &key (errorp t) (keyword-policy :strict))
   '(values kind new-direction new-limit-kind)
-  (case keyword
+  (case (ecase keyword-policy
+          (:strict keyword)
+          (:loose (intern (symbol-name keyword) '#:keyword)))
     ((:from :downfrom :upfrom)
      (multiple-value-call #'values
        :from
@@ -24,9 +26,9 @@
     (t (when errorp
          (error "~S is not a for-as-arithmetic keyword." keyword)))))
 
-(defun flags (keyword &key (errorp t))
+(defun flags (keyword &key (errorp t) (keyword-policy :strict))
   (multiple-value-bind (kind direction limit-kind)
-      (kind keyword :errorp errorp)
+      (kind keyword :errorp errorp :keyword-policy keyword-policy)
     (declare (ignore kind))
     (values direction limit-kind)))
 
