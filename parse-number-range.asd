@@ -5,7 +5,7 @@
   ;; See the UNLICENSE file for details.
   :license "Public Domain"
 
-  :description "Parses LOOP's convenient \"for-as-arithmetic\" syntax into 5 simple values: from, to, limit-kind (:inclusive, :exclusive or nil if unbounded), by (step) and direction (+ or -)). Intended for easy implementation of analogous functionality in other constructs."
+  :description "Parses LOOP's convenient \"for-as-arithmetic\" syntax into 5 simple values: from, to, limit-kind (:inclusive, :exclusive or nil if unbounded), by (step) and direction (+ or -)). Further related utilities are provided. Intended for easy implementation of analogous functionality in other constructs."
 
   :depends-on (#:map-bind
                #:cartesian-product-switch

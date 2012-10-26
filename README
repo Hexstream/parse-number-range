@@ -1,10 +1,170 @@
 Project's home: http://www.hexstreamsoft.com/projects/parse-number-range/
 
 
-Parses LOOP's convenient "for-as-arithmetic" syntax into 5 simple
-values: from, to, limit-kind (:inclusive, :exclusive
-or nil if unbounded), by (step) and direction (+ or -)). Intended for
-easy implementation of analogous functionality in other constructs.
+parse-number-range parses LOOP's convenient "for-as-arithmetic" syntax
+into 5 simple values: from, to, limit-kind (:inclusive, :exclusive or
+nil if unbounded), by (step) and direction (+ or -)). Further related
+utilities are provided. Intended for easy implementation of analogous
+functionality in other constructs.
+
+For a description of LOOP's "for-as-arithmetic", see:
+http://www.lispworks.com/documentation/HyperSpec/Body/06_abaa.htm
+
+Here's the package name, along with 2 nicknames:
+- PARSE-NUMBER-RANGE
+- PARSE-NUMRANGE
+- PNUMRANGE
+
+Explicit qualification of the exported symbols is recommended, and one
+might (:import-from) select symbols, but (:use) is strongly discouraged.
+
+Here are the exported symbols:
+parse unparse canonicalize ; "parse" API
+kind flags flags-to-keywords ; "info" API
+
+Parse API
+---------
+
+Here are the 5 "fundamental" values returned from PARSE and accepted by UNPARSE:
+
+- FROM: The form introduced by :from, :upfrom or :downfrom. Defaults to 0;
+- TO: The form introduced by :to, :upto, :downto, :below or :above. NIL means "unbounded";
+- LIMIT-KIND:  :inclusive or :exclusive if there's a limit, or NIL if unbounded;
+- BY: The form introduced by :by;
+- DIRECTION: + or -.
+
+Some functions accept a KEYWORD-POLICY &key argument, which must be
+either :strict or :loose. (from 1 to 10) would be valid with :loose
+but not with :strict, which demands (:from 1 :to 10).
+
+Use of :loose is strongly discouraged, as it's an unnecessary and evil
+feature that typically results in arbitrary interning of symbols in
+arbitrary packages.
+
+
+Function PARSE range &key (keyword-policy :strict)
+                          (extrasp nil)
+                          (clause-kinds-p extrasp)
+                          (clause-keywords-p extrasp)
+                          (clauses-alist-p extrasp)
+  => from to limit-kind by direction
+       &key clause-kinds clause-keywords clauses-alist
+
+By default, PARSE returns only the 5 "fundamental" values (see above):
+- FROM: Defaults to 0;
+- TO: Defaults to NIL;
+- LIMIT-KIND: Defaults to NIL (unbounded);
+- BY: Defaults to 1;
+- DIRECTION: Defaults to +.
+
+PARSE can compute and return 3 additional pieces of information, on request:
+|-----------------|-------------------|----------------------------------------|
+| return value    | request-keyword   | description                            |
+|-----------------|-------------------|----------------------------------------|
+|-----------------|-------------------|----------------------------------------|
+| clause-kinds    | clause-kinds-p    | The clause kinds that were present,    |
+|                 |                   | in the order they appeared in.         |
+|-----------------|-------------------|----------------------------------------|
+| clause-keywords | clause-keywords-p | The clause keywords that were present, |
+|                 |                   | in the order they appeared in.         |
+|-----------------|-------------------|----------------------------------------|
+| clauses-alist   | clauses-alist-p   | Alist: (clause-kind . clause-keyword)  |
+|-----------------|-------------------|----------------------------------------|
+
+
+Function UNPARSE from to limit-kind by direction &key clause-kinds
+  => range
+
+As you might have guessed, this does the reverse of PARSE...
+
+UNPARSE uses FLAGS-TO-KEYWORDS internally and thus inherits its biases.
+
+CLAUSE-KINDS should be a list of up to 3 elements being a permutation
+of the clause-kinds :from, :to and :by. This determines the order that
+the clauses will appear in, which might matter in the presence of
+side-effects. NIL designates the default order, (:from :to :by).
+
+If the list has 0 or 1 elements, then the default order is used, (:from :to :by).
+
+If the list has 2 elements, then those clauses will appear in the
+order specified but no order is specified between the other elements
+and these ones and between the other elements among themselves.
+(Yeah, a less simplistic implementation would allow simpler and more useful semantics.)
+
+If the list has 3 elements, then the order is completely specified, explicitly.
+
+
+Function CANONICALIZE range &key (clause-kinds :preserve) (keyword-policy :strict)
+
+This simply feeds the results of PARSE into UNPARSE. If CLAUSE-KINDS
+is :preserve, then :clause-kinds-p t will be specified for PARSE and
+the resulting CLAUSE-KINDS result will be fed to UNPARSE. Else, the
+provided CLAUSE-KINDS is fed directly to UNPARSE.
+
+
+Info API
+--------
+
+Function KIND keyword &key (errorp t) (keyword-policy :strict)
+  => kind direction limit-kind
+This function takes a LOOP keyword and returns the following information:
+
+(I have to run away from plaintext for documentation. FAST.
+ I tried unicode box drawing characters but they wouldn't align.)
+
+|-----------||--------------------------------|
+| Argument  ||   r e t u r n   v a l u e s    |
+|-----------||--------------------------------|
+| keyword   || kind  | direction | limit-kind |
+|-----------||-------|-----------|------------|
+|-----------||-------|-----------|------------|
+|     :from || :from |    nil    |     nil    |
+|-----------||-------|-----------|------------|
+| :downfrom || :from |     -     |     nil    |
+|-----------||-------|-----------|------------|
+|   :upfrom || :from |     +     |     nil    |
+|-----------||-------|-----------|------------|
+|-----------||-------|-----------|------------|
+|       :to || :to   |    nil    | :inclusive |
+|-----------||-------|-----------|------------|
+|     :upto || :to   |     +     | :inclusive |
+|-----------||-------|-----------|------------|
+|   :downto || :to   |     -     | :inclusive |
+|-----------||-------|-----------|------------|
+|    :below || :to   |     +     | :exclusive |
+|-----------||-------|-----------|------------|
+|    :above || :to   |     -     | :exclusive |
+|-----------||-------|-----------|------------|
+|-----------||-------|-----------|------------|
+|       :by || :by   |     nil   |     nil    |
+|-----------||-------|-----------|------------|
+
+
+Function FLAGS keyword &key (errorp t) (keyword-policy :strict)
+  => direction limit-kind
+
+This convenience function simply forwards to KIND
+and returns all values but the first.
+
+
+Function FLAGS-TO-KEYWORDS direction limit-kind
+  => from-keyword to-keyword
+
+This function does roughly the opposite of the KIND function. It
+returns a FROM-KEYWORD and a TO-KEYWORD (nil if unbounded) that
+properly indicate the supplied DIRECTION and LIMIT-KIND.
+
+There are typically multiple valid sets of answers that could be
+returned. This function is currently biased as follows, with no way to
+request a different bias:
+
+1. The DIRECTION and LIMIT-KIND will always be represented in the
+TO-KEYWORD, and never in the FROM-KEYWORD, except for the following
+exception:
+
+(flags-to-keywords '- :exclusive) => :downfrom, nil
+
+2. :to is always returned in preference to :upto.
 
 
 This library is in the Public Domain.
