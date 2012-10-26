@@ -25,10 +25,10 @@
          (error "~S is not a for-as-arithmetic keyword." keyword)))))
 
 (defun flags (keyword &key (errorp t))
-  (multiple-value-call (lambda (kind &rest flags)
-                         (declare (ignore kind))
-                         (values-list flags))
-    (kind keyword :errorp errorp)))
+  (multiple-value-bind (kind direction limit-kind)
+      (kind keyword :errorp errorp)
+    (declare (ignore kind))
+    (values direction limit-kind)))
 
 
 (defun flags-to-keywords (direction limit-kind)
