@@ -34,7 +34,12 @@
       (funcall finish-key-value)
       (funcall finish-extras))))
 
+;; clause-kinds should get some sanity checks...
 (defun unparse (from to limit-kind by direction &key clause-kinds)
+  (setf clause-kinds
+        (ecase (length clause-kinds)
+          ((0 1) '(:from :to :by))
+          ((2 3) clause-kinds)))
   (multiple-value-bind (from-keyword to-keyword)
       (flags-to-keywords direction limit-kind)
     ;; Backquote indented badly...
