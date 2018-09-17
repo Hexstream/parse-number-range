@@ -16,4 +16,6 @@
   :components ((:file "package")
                (:file "info")
                (:file "internals")
-	       (:file "parse")))
+	       (:file "parse"))
+
+  :in-order-to ((asdf:test-op (asdf:test-op #:parse-number-range_tests))))
