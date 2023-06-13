@@ -26,10 +26,11 @@
              (:loose (let ((keyword-package (find-package '#:keyword)))
                        (lambda (key)
                          (intern (symbol-name key) keyword-package)))))))
-      (map-bind (%map-plist) (((key value) range))
-        (setf key (funcall key-transform key))
-        (let ((kind (funcall process-key-value key value)))
-          (funcall process-extras kind key))))
+      (%map-plist (lambda (key value)
+                    (setf key (funcall key-transform key))
+                    (let ((kind (funcall process-key-value key value)))
+                      (funcall process-extras kind key)))
+                  range))
     (multiple-value-call #'values
       (funcall finish-key-value)
       (funcall finish-extras))))
@@ -52,11 +53,12 @@
                (unless (member kind clause-kinds :test #'eq)
                  list)))
         (nconc (maybe :from from) (maybe :to to) (maybe :by by)
-               (map-bind (mapcan) ((kind clause-kinds))
-                 (ecase kind
-                   (:from from)
-                   (:to to)
-                   (:by by))))))))
+               (mapcan (lambda (kind)
+                         (ecase kind
+                           (:from from)
+                           (:to to)
+                           (:by by)))
+                       clause-kinds))))))
 
 (defun canonicalize (range &key
                      (clause-kinds :preserve)
