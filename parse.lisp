@@ -61,10 +61,10 @@
                        clause-kinds))))))
 
 (defun canonicalize (range &key
-                     (clause-kinds :preserve)
-                     (keyword-policy :strict))
-  (multiple-value-&bind (from to limit-kind by direction
-                              &key ((:clause-kinds parsed-clause-kinds)))
+                             (clause-kinds :preserve)
+                             (keyword-policy :strict))
+  (multiple-value-bind (from to limit-kind by direction
+                        &key ((:clause-kinds parsed-clause-kinds)))
       (parse range
              :clause-kinds-p (eq clause-kinds :preserve)
              :keyword-policy keyword-policy)
